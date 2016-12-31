@@ -10,7 +10,7 @@ output:
 
 Load required libraries.
 
-```{r library, message = FALSE}
+```{r library, message = FALSE, echo = TRUE}
 library(dplyr)
 library(sqldf)
 library(ggplot2)
@@ -18,7 +18,7 @@ library(ggplot2)
 
 It is assumed the markdown file and the data CSV are in the same directory.
 
-```{r unzip, message = FALSE}
+```{r unzip, message = FALSE, echo = TRUE}
 ## activity.zip was already found in the forked repository for the project.
 ## This produces activity.csv.
 unzip("activity.zip")
@@ -26,7 +26,7 @@ unzip("activity.zip")
 
 Load the data in a dataframe.   Also add an "ActivityDate" column that converts the text dates into real date time values.
 
-```{r loaddata, message = FALSE}
+```{r loaddata, message = FALSE, echo = TRUE}
 activityData <- read.csv("activity.csv", na.strings = "NA")
 activityData <- 
   data.frame(activityData, ActivityDate = strptime(activityData$date, "%Y-%m-%d"))
@@ -37,7 +37,7 @@ activityData <-
 
 To get the steps per day it is required to group by day and then summarize the total steps.
 
-```{r StepsPerDay-Part1, message = FALSE}
+```{r StepsPerDay-Part1, message = FALSE, echo = TRUE}
 stepsSumPerDay1 <- activityData %>% 
   group_by(ActivityDate) %>% 
   summarize(DailyStepCount = sum(steps))
@@ -47,7 +47,7 @@ From here the graph can be created.
 
 The bars were grouped in sizes of 1000.  Ultimately this could be changed if desired via "binGroupSize1".
 
-```{r Graph1, message = FALSE}
+```{r Graph1, message = FALSE, echo = TRUE}
 binGroupSize1 <- 1000
 breakByBinGroupSize1 <- ceiling(max(stepsSumPerDay1$DailyStepCount, na.rm = TRUE) / binGroupSize1)
 hist(stepsSumPerDay1$DailyStepCount, 
@@ -58,7 +58,7 @@ hist(stepsSumPerDay1$DailyStepCount,
 
 ```
 
-```{r meanMedian1, message = FALSE}
+```{r meanMedian1, message = FALSE, echo = TRUE}
 ## Code to compute the median and mean values of the daily steps.
 stepMedian1 <- median(stepsSumPerDay1$DailyStepCount, na.rm = TRUE)
 stepMean1 <- mean(stepsSumPerDay1$DailyStepCount, na.rm = TRUE)
@@ -70,7 +70,7 @@ As show in the code above, the median step value is **`r as.character(round(step
 
 To obtain the average daily activity pattern it is required to first group the data by intervals and then summarize by the mean.
 
-```{r intervalStepMean, message = FALSE}
+```{r intervalStepMean, message = FALSE, echo = TRUE}
 intervalStepMean <- activityData %>%
   group_by(interval) %>%
   summarize(StepMean = mean(steps, na.rm = TRUE))
@@ -78,7 +78,7 @@ intervalStepMean <- activityData %>%
 
 With the data grouped and summarized a plot can then be graphed.
 
-```{r Graph2, message = FALSE}
+```{r Graph2, message = FALSE, echo = TRUE}
 plot(intervalStepMean$interval, 
      intervalStepMean$StepMean, 
      type = "l",
@@ -87,7 +87,7 @@ plot(intervalStepMean$interval,
      main = "Average Steps Taken per Interval")
 ```
 
-```{r maxIntervalStep, message = FALSE, results = 'hide'}
+```{r maxIntervalStep, message = FALSE, results = 'hide', echo = TRUE}
 ## Code to compute the interval with the maximum mean value.
 intervalStepMean[intervalStepMean$StepMean == max(intervalStepMean$StepMean),]$interval
 ```
@@ -110,7 +110,7 @@ SQL will be used to map the intervals to their matching mean values.  The mean v
 
 Once mapped the steps that are null can be overwritten with the mean values for that interval.
 
-```{r sqlMapIntervalStep, message = FALSE}
+```{r sqlMapIntervalStep, message = FALSE, echo = TRUE}
 ## Using SQL map the step means for an interval to each interval.
 activityDataFilled <- sqldf(
   "select A.*, B.StepMean 
@@ -124,7 +124,7 @@ activityDataFilled[is.na(activityData$steps),]$steps <-
 
 As done with the first plot, we can again group by date and summarize the total steps.  The plot can then be generated.
 
-```{r Graph3, message = FALSE}
+```{r Graph3, message = FALSE, echo = TRUE}
 ## Repeat the process used prior but now with the filled data.
 stepsSumPerDay2 <- activityDataFilled %>% 
   group_by(ActivityDate) %>% 
@@ -140,7 +140,7 @@ hist(stepsSumPerDay2$DailyStepCount,
      breaks=breakByBinGroupSize1)
 ```
 
-```{r meanMedian2, message = FALSE}
+```{r meanMedian2, message = FALSE, echo = TRUE}
 ## Code to compute the median and mean values of the daily steps.
 stepMedian2 <- median(stepsSumPerDay2$DailyStepCount)
 stepMean2 <- mean(stepsSumPerDay2$DailyStepCount)
@@ -158,7 +158,7 @@ Secondly, the weekend values need to be assigned to the weekdays values just cal
 
 **It is assumed here that weekend values are Saturday and Sunday.**
 
-```{r weekdayEnd, message = FALSE}
+```{r weekdayEnd, message = FALSE, echo = TRUE}
 ## Figure out the day of week.
 activityDataFilled$DayOfWeek <- weekdays(activityDataFilled$ActivityDate)
 ## Intially set all day types to a weekday.
@@ -172,7 +172,7 @@ Finally, the data can be grouped by the type of day (weekday or weekend) and sum
 
 The plot can then be generated.
 
-```{r Graph4, message = FALSE}
+```{r Graph4, message = FALSE, echo = TRUE}
 dayTypeIntervalMean <- activityDataFilled %>%
   group_by(DayType, interval) %>%
   summarize(StepMean = mean(steps))
